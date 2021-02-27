@@ -6,10 +6,10 @@ Parameters:
   SentryDsn:
     Type: String
     Description: SENTRY DSN
-    Default: false
+    Default: disabled
   S3Bucket:
     Type: String
-    Description: Bucket name
+    Description: Bucket name to store your emails
 
 Globals:
   Function:

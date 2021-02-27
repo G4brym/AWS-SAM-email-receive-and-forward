@@ -11,7 +11,7 @@ logger.setLevel(logging.INFO)
 
 S3_BUCKET = os.environ['S3_BUCKET']
 CONFIG_FILE = os.environ.get('CONFIG_FILE', 'configs.json')
-print(S3_BUCKET)
+
 
 def handler(event, context):
     with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'configs.json')) as fp:

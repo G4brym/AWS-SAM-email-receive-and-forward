@@ -12,7 +12,7 @@ ses = boto3.client('ses')
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-if "SENTRY_DSN" in os.environ and os.environ["SENTRY_DSN"] != "false":
+if "SENTRY_DSN" in os.environ and os.environ["SENTRY_DSN"] != "disabled":
     import sentry_sdk
     from sentry_sdk.integrations.aws_lambda import AwsLambdaIntegration
 
