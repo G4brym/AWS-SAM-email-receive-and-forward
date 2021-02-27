@@ -1,0 +1,6 @@
+aws-sam-cli==1.8.0
+pre-commit==2.7.1
+attrs==20.2.0
+sam==0.3.2
+sentry-sdk==0.19.5
+boto3==1.14.63

@@ -1,0 +1,73 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: EmailReceiver
+
+Parameters:
+  SentryDsn:
+    Type: String
+    Description: SENTRY DSN
+    Default: false
+  S3Bucket:
+    Type: String
+    Description: Bucket name
+
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 128
+    CodeUri: ./
+    Runtime: python3.8
+    Environment:
+      Variables:
+        SENTRY_DSN: !Ref SentryDsn
+        S3_BUCKET: !Ref S3Bucket
+
+Resources:
+  ReceiptRuleSet:
+    Type: 'AWS::SES::ReceiptRuleSet'
+    Properties:
+      RuleSetName: EmailReceiverRuleSet
+
+  ConfigSync:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: functions.config_sync.function.handler
+      Policies:
+        - S3WritePolicy:
+            BucketName: !Ref S3Bucket
+
+  EmailReceiver:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: functions.email_receiver.function.handler
+      Policies:
+        - S3CrudPolicy:
+            BucketName: !Ref S3Bucket
+        - SESCrudPolicy:
+            IdentityName: "*"
+
+  s3Permission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt EmailReceiver.Arn
+      Action: lambda:InvokeFunction
+      Principal: ses.amazonaws.com
+      SourceAccount: !Ref 'AWS::AccountId'
+
+  ReceiptRule:
+    Type: 'AWS::SES::ReceiptRule'
+    DependsOn: EmailReceiver
+    Properties:
+      RuleSetName: EmailReceiverRuleSet
+      Rule:
+        Name: EmailReceiverRule
+        Enabled: true
+        ScanEnabled: true
+        TlsPolicy: Require
+        Actions:
+          - S3Action:
+              BucketName: !Ref S3Bucket
+              ObjectKeyPrefix: queue/
+          - LambdaAction:
+              FunctionArn: !GetAtt EmailReceiver.Arn
+              InvocationType: Event
