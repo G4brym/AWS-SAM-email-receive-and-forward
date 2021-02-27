@@ -1,13 +1,13 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: EmailReceiver
+Description: Receive and Forward emails using AWS SES and Lambda
 
 Parameters:
   SentryDsn:
     Type: String
     Description: SENTRY DSN
     Default: disabled
-  S3Bucket:
+  S3BucketName:
     Type: String
     Description: Bucket name to store your emails
 
@@ -20,13 +20,35 @@ Globals:
     Environment:
       Variables:
         SENTRY_DSN: !Ref SentryDsn
-        S3_BUCKET: !Ref S3Bucket
+        S3_BUCKET: !Ref S3BucketName
 
 Resources:
   ReceiptRuleSet:
     Type: 'AWS::SES::ReceiptRuleSet'
     Properties:
-      RuleSetName: EmailReceiverRuleSet
+      RuleSetName: EmailForwardingRuleSet
+
+  S3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref S3BucketName
+
+  SampleBucketPolicy:
+    Type: 'AWS::S3::BucketPolicy'
+    Properties:
+      Bucket: !Ref S3BucketName
+      PolicyDocument:
+        Statement:
+          - Action:
+              - 's3:PutObject'
+            Effect: Allow
+            Resource: !Join
+              - ''
+              - - 'arn:aws:s3:::'
+                - !Ref S3BucketName
+                - /*
+            Principal:
+              Service: 'ses.amazonaws.com'
 
   ConfigSync:
     Type: AWS::Serverless::Function
@@ -34,40 +56,40 @@ Resources:
       Handler: functions.config_sync.function.handler
       Policies:
         - S3WritePolicy:
-            BucketName: !Ref S3Bucket
+            BucketName: !Ref S3BucketName
 
-  EmailReceiver:
+  EmailForwarding:
     Type: AWS::Serverless::Function
     Properties:
       Handler: functions.email_receiver.function.handler
       Policies:
         - S3CrudPolicy:
-            BucketName: !Ref S3Bucket
+            BucketName: !Ref S3BucketName
         - SESCrudPolicy:
             IdentityName: "*"
 
   s3Permission:
     Type: AWS::Lambda::Permission
     Properties:
-      FunctionName: !GetAtt EmailReceiver.Arn
+      FunctionName: !GetAtt EmailForwarding.Arn
       Action: lambda:InvokeFunction
       Principal: ses.amazonaws.com
       SourceAccount: !Ref 'AWS::AccountId'
 
   ReceiptRule:
     Type: 'AWS::SES::ReceiptRule'
-    DependsOn: EmailReceiver
+    DependsOn: EmailForwarding
     Properties:
-      RuleSetName: EmailReceiverRuleSet
+      RuleSetName: EmailForwardingRuleSet
       Rule:
-        Name: EmailReceiverRule
+        Name: EmailForwardingRule
         Enabled: true
         ScanEnabled: true
         TlsPolicy: Require
         Actions:
           - S3Action:
-              BucketName: !Ref S3Bucket
+              BucketName: !Ref S3BucketName
               ObjectKeyPrefix: queue/
           - LambdaAction:
-              FunctionArn: !GetAtt EmailReceiver.Arn
+              FunctionArn: !GetAtt EmailForwarding.Arn
               InvocationType: Event
