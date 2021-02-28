@@ -1,8 +1,7 @@
 # AWS SAM Receive And Forward Emails with SES
-This Sam comfig allows you to receive and forward emails using AWS SES.
+This Sam config allows you to receive and forward emails using AWS SES.
 
-This works trough a configuration file, stored in a S3 bucket, and it allows you to define multiple mappings for
-your emails addresses.
+This works through a configuration file, stored in a S3 bucket, and it allows you to define multiple mappings for your email addresses.
 
 ## Installation
 ### Using the template

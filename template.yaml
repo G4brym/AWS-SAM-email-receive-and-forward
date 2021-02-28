@@ -2,6 +2,19 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: Receive and Forward emails using AWS SES and Lambda
 
+Metadata:
+  AWS::ServerlessRepo::Application:
+    Name: receive-and-forward-emails
+    Description: This template allows you to receive and forward emails using AWS SES. This works through a configuration file, stored in a S3 bucket, and it allows you to define multiple mappings for your email addresses.
+    Author: Gabriel Massadas
+    SpdxLicenseId: MIT License
+    LicenseUrl: LICENSE.txt
+    ReadmeUrl: README.md
+    Labels: ['ses', 'forward', 'forwarding', 'lambda', 'emails']
+    HomePageUrl: https://github.com/G4brym/AWS-SAM-receive-and-forward-emails
+    SemanticVersion: v1.0.0
+    SourceCodeUrl: https://github.com/G4brym/AWS-SAM-receive-and-forward-emails
+
 Parameters:
   SentryDsn:
     Type: String
