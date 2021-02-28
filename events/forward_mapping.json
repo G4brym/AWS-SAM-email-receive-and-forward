@@ -1,0 +1,13 @@
+{
+  "unprocessed_path":"queue",
+  "from_email":"noreply@yourdomain.com",
+  "receipt_fallback":"fallback@yourdomain.com",
+  "mapping":{
+    "@yourdomain.com":[
+      "personal@gmail.com"
+    ],
+    "ceo@yourdomain.com":[
+      "joe@gmail.com"
+    ]
+  }
+}
